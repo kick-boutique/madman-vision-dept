@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>MADMAN VISION DEPT.</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap');
+
+:root{
+  --bg:        #EDE6D8;
+  --bg-soft:   #F5F0E6;
+  --ink:       #17140F;
+  --ink-soft:  #4A443C;
+  --line:      rgba(23,20,15,0.14);
+  --brown:     #3B2A1E;
+  --black:     #0B0A08;
+  --white:     #FDFBF7;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Inter',sans-serif;font-weight:300;
+  overflow-x:hidden;width:100%;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+
+.display{font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+.mono{font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.14em;font-size:0.68rem;font-weight:400;color:var(--ink-soft);}
+
+/* ---------- NAV ---------- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px clamp(16px,4vw,48px);
+  background:rgba(237,230,216,0.0);
+  transition:background .3s ease;
+}
+header.solid{background:rgba(237,230,216,0.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);}
+header, header a{color:var(--white);}
+header.solid, header.solid a{color:var(--ink);}
+.logo-mark{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:0.08em;}
+nav.links{display:flex;align-items:center;gap:clamp(14px,3vw,32px);font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;}
+nav.links a{position:relative;padding-bottom:4px;}
+nav.links a::after{content:'';position:absolute;left:0;bottom:0;width:0%;height:1px;background:currentColor;transition:width .35s ease;}
+nav.links a:hover::after{width:100%;}
+.cart-link{display:flex;align-items:center;gap:8px;}
+.cart-badge{
+  background:currentColor;color:var(--bg);border-radius:50%;
+  width:17px;height:17px;font-size:0.6rem;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;
+}
+header.solid .cart-badge{background:var(--ink);color:var(--white);}
+header:not(.solid) .cart-badge{background:var(--white);color:var(--ink);}
+
+/* ---------- BUTTONS ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;
+  padding:15px 26px;transition:transform .2s ease, background .25s ease, color .25s ease;
+}
+.btn-dark{background:var(--ink);color:var(--white);}
+.btn-dark:hover{transform:translateY(-2px);}
+.btn-outline{border:1px solid var(--ink);color:var(--ink);}
+.btn-outline:hover{background:var(--ink);color:var(--white);}
+.btn-wa{background:#1F1C17;color:var(--white);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+/* ---------- SECTION HEADS ---------- */
+.section-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:0 clamp(16px,4vw,48px);margin:clamp(70px,10vw,110px) 0 28px;
+  border-bottom:1px solid var(--line);padding-bottom:20px;flex-wrap:wrap;gap:12px;
+}
+.section-head h2{font-size:clamp(1.5rem,3vw,2.1rem);}
+
+/* ---------- CATEGORY TABS ---------- */
+.tabs{
+  display:flex;gap:8px;padding:0 clamp(16px,4vw,48px);margin-bottom:28px;flex-wrap:wrap;
+}
+.tab{
+  font-family:'Space Grotesk',sans-serif;font-size:0.74rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;
+  padding:10px 20px;border:1px solid var(--line);color:var(--ink-soft);
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.tab.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.tab:hover:not(.active){border-color:var(--ink);}
+
+/* ---------- PRODUCT GRID ---------- */
+.grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  margin:0 clamp(16px,4vw,48px);border:1px solid var(--line);
+}
+.card{background:var(--bg-soft);position:relative;overflow:hidden;display:block;}
+.card-img{position:relative;aspect-ratio:3/4;overflow:hidden;background:#e2dccd;}
+.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:opacity .5s ease, transform .6s ease;}
+.card-img img.alt{opacity:0;}
+@media (hover:hover) and (pointer:fine){
+  .card:hover .card-img img.base{opacity:0;transform:scale(1.03);}
+  .card:hover .card-img img.alt{opacity:1;transform:scale(1.03);}
+}
+.card-tag{
+  position:absolute;top:12px;left:12px;z-index:2;
+  font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  background:rgba(23,20,15,0.85);color:var(--white);padding:5px 9px;
+}
+.card-info{padding:16px 18px 20px;}
+.card-info h3{font-size:0.86rem;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+.card-info .price{margin-top:6px;font-family:'Space Mono',monospace;font-size:0.82rem;color:var(--ink-soft);}
+.card-cta{
+  margin-top:14px;display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--line);padding-top:12px;
+  font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;font-weight:600;
+}
+.card-cta .go{
+  width:26px;height:26px;border-radius:50%;border:1px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;font-size:0.8rem;
+  transition:background .25s ease,color .25s ease;
+}
+@media (hover:hover) and (pointer:fine){
+  .card:hover .card-cta .go{background:var(--ink);color:var(--white);}
+}
+
+/* ---------- FOOTER ---------- */
+footer{background:var(--black);color:rgba(253,251,247,0.7);padding:clamp(48px,8vw,72px) clamp(20px,6vw,80px) 28px;}
+.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;padding-bottom:40px;border-bottom:1px solid rgba(253,251,247,0.14);}
+.footer-brand .logo-mark{color:var(--white);font-size:1.1rem;margin-bottom:14px;}
+.footer-brand p{font-size:0.84rem;line-height:1.6;max-width:280px;color:rgba(253,251,247,0.55);}
+footer h4{font-family:'Space Mono',monospace;font-size:0.66rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(253,251,247,0.45);margin-bottom:16px;}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+footer ul a{font-size:0.86rem;color:rgba(253,251,247,0.82);transition:color .2s ease;}
+footer ul a:hover{color:var(--white);}
+.footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:22px;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:rgba(253,251,247,0.4);text-transform:uppercase;}
+
+/* ---------- STICKY MOBILE WHATSAPP ---------- */
+.sticky-wa{
+  position:fixed;bottom:18px;right:18px;z-index:200;width:54px;height:54px;border-radius:50%;
+  background:var(--ink);color:var(--white);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+.sticky-wa svg{width:24px;height:24px;}
+
+/* ---------- PAGE HERO (non-home pages) ---------- */
+.page-pad{padding-top:96px;}
+.breadcrumb{
+  padding:0 clamp(16px,4vw,48px);margin-bottom:28px;
+  font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);
+}
+.breadcrumb a:hover{color:var(--ink);}
+.back-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.back-btn:hover{background:var(--ink);color:var(--white);border-color:var(--ink);}
+
+/* ---------- PRODUCT PAGE ---------- */
+.pdp{
+  display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(24px,4vw,64px);
+  padding:0 clamp(16px,4vw,48px);
+}
+.pdp-gallery{display:flex;flex-direction:column;gap:6px;}
+.pdp-main-img{aspect-ratio:4/5;overflow:hidden;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;}
+.pdp-main-img img{width:100%;height:100%;object-fit:contain;}
+.pdp-thumbs{display:flex;gap:6px;}
+.pdp-thumbs button{
+  width:74px;height:92px;overflow:hidden;background:var(--bg-soft);border:2px solid transparent;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.pdp-thumbs button.active{border-color:var(--ink);}
+.pdp-thumbs img{width:100%;height:100%;object-fit:contain;}
+
+/* ---------- QUICK VIEW DRAWER (desktop) ---------- */
+.qv-overlay{
+  position:fixed;inset:0;background:rgba(11,10,8,0.45);z-index:500;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;
+}
+.qv-overlay.open{opacity:1;pointer-events:auto;}
+.qv-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(560px,92vw);z-index:501;
+  background:var(--bg);box-shadow:-20px 0 60px rgba(0,0,0,0.25);
+  transform:translateX(100%);transition:transform .4s cubic-bezier(.22,.68,0,1);
+  overflow-y:auto;
+}
+.qv-drawer.open{transform:translateX(0);}
+.qv-top{display:flex;align-items:center;justify-content:space-between;padding:20px clamp(18px,3vw,32px);position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--line);}
+.qv-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.qv-close:hover{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.qv-body{padding:24px clamp(18px,3vw,32px) 40px;}
+.qv-main-img{aspect-ratio:4/5;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;}
+.qv-main-img img{width:100%;height:100%;object-fit:contain;}
+.qv-thumbs{display:flex;gap:6px;margin-bottom:24px;}
+.qv-thumbs button{width:64px;height:80px;background:var(--bg-soft);border:2px solid transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.qv-thumbs button.active{border-color:var(--ink);}
+.qv-thumbs img{width:100%;height:100%;object-fit:contain;}
+
+.pdp-info{padding-top:8px;}
+.pdp-info .mono{margin-bottom:14px;}
+.pdp-info h1{font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.1;margin-bottom:14px;}
+.pdp-price{font-family:'Space Mono',monospace;font-size:1.15rem;margin-bottom:22px;}
+.pdp-desc{font-size:0.92rem;line-height:1.7;color:var(--ink-soft);margin-bottom:28px;max-width:460px;}
+.pdp-desc ul{margin-left:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+.pdp-desc li::before{content:'— ';}
+
+.field-label{font-family:'Space Grotesk',sans-serif;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;margin-bottom:10px;display:block;}
+.size-row{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+.size-pill{
+  width:46px;height:46px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:0.78rem;transition:all .2s ease;
+}
+.size-pill.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.size-pill:hover:not(.active){border-color:var(--ink);}
+
+.qty-row{display:flex;align-items:center;gap:16px;margin-bottom:26px;}
+.qty-stepper{display:flex;align-items:center;border:1px solid var(--line);}
+.qty-stepper button{width:40px;height:44px;font-size:1rem;}
+.qty-stepper span{width:36px;text-align:center;font-family:'Space Mono',monospace;}
+
+.pdp-actions{display:flex;flex-direction:column;gap:10px;max-width:380px;}
+.pdp-note{margin-top:20px;font-size:0.78rem;color:var(--ink-soft);line-height:1.6;}
+
+/* ---------- RELATED ---------- */
+.related-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);margin:0 clamp(16px,4vw,48px);border:1px solid var(--line);}
+
+/* ---------- CART PAGE ---------- */
+.cart-wrap{padding:0 clamp(16px,4vw,48px);max-width:920px;}
+.cart-item{
+  display:grid;grid-template-columns:90px 1fr auto;gap:18px;align-items:center;
+  padding:20px 0;border-bottom:1px solid var(--line);
+}
+.cart-item img{width:90px;height:110px;object-fit:cover;}
+.cart-item h4{font-family:'Space Grotesk',sans-serif;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;}
+.cart-item .meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--ink-soft);}
+.cart-item .remove{font-size:0.72rem;text-decoration:underline;color:var(--ink-soft);margin-top:8px;display:inline-block;}
+.cart-summary{
+  margin-top:30px;padding-top:24px;border-top:2px solid var(--ink);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+}
+.cart-empty{padding:60px clamp(16px,4vw,48px);text-align:center;}
+.cart-empty h3{font-size:1.4rem;margin-bottom:16px;}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:900px){
+  .grid, .related-grid{grid-template-columns:repeat(2,1fr);}
+  .pdp{grid-template-columns:1fr;}
+}
+@media (max-width:520px){
+  nav.links a:not(.cart-link){display:none;}
+  .cart-item{grid-template-columns:70px 1fr;}
+  .cart-summary{flex-direction:column;align-items:flex-start;}
+}
+
+/* ---------- HOME-SPECIFIC (hero, manifesto, detail, vision, order strip) ---------- */
+.hero{position:relative;height:100svh;min-height:560px;display:flex;align-items:flex-end;overflow:hidden;}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%;filter:grayscale(15%) contrast(1.05);}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(11,10,8,0.15) 0%, rgba(11,10,8,0.05) 40%, rgba(11,10,8,0.75) 100%);}
+.hero::after{content:'';position:absolute;top:-10%;right:8%;width:26%;height:140%;background:linear-gradient(100deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 60%);transform:rotate(12deg);pointer-events:none;}
+.hero-content{position:relative;z-index:2;color:var(--white);padding:0 clamp(16px,4vw,48px) clamp(36px,6vw,64px);width:100%;}
+.eyebrow{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;opacity:0.85;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:22px;height:1px;background:currentColor;display:inline-block;}
+.hero h1{font-size:clamp(2.6rem,9vw,6.2rem);line-height:0.94;letter-spacing:0.01em;}
+.hero-sub{margin-top:22px;max-width:420px;font-weight:300;font-size:0.98rem;line-height:1.55;color:rgba(253,251,247,0.82);}
+.hero-cta{margin-top:32px;display:inline-flex;align-items:center;gap:14px;border:1px solid rgba(253,251,247,0.55);padding:14px 26px;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;transition:background .3s ease, color .3s ease;}
+.hero-cta:hover{background:var(--white);color:var(--black);}
+.scroll-cue{position:absolute;bottom:24px;right:clamp(16px,4vw,48px);z-index:2;color:var(--white);writing-mode:vertical-rl;font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;display:flex;align-items:center;gap:10px;opacity:0.75;}
+.scroll-cue::after{content:'';width:1px;height:36px;background:currentColor;display:inline-block;}
+.manifesto{background:var(--black);color:var(--white);padding:clamp(64px,12vw,140px) clamp(20px,6vw,80px);position:relative;}
+.manifesto .mono{color:rgba(253,251,247,0.5);margin-bottom:24px;}
+.manifesto blockquote{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(1.5rem,4.2vw,2.9rem);line-height:1.18;max-width:900px;}
+.manifesto blockquote span{color:rgba(253,251,247,0.4);}
+.manifesto .sign{margin-top:40px;font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(253,251,247,0.6);display:flex;gap:18px;align-items:center;}
+.detail{display:grid;grid-template-columns:1fr 1fr;margin:clamp(70px,10vw,120px) 0 0;}
+.detail .photo{aspect-ratio:1/1;overflow:hidden;}
+.detail .photo img{width:100%;height:100%;object-fit:cover;}
+.detail .copy{background:var(--bg-soft);display:flex;flex-direction:column;justify-content:center;padding:clamp(32px,6vw,72px);}
+.detail .copy .mono{margin-bottom:20px;}
+.detail .copy h3{font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.15;margin-bottom:18px;}
+.detail .copy p{font-size:0.94rem;line-height:1.7;color:var(--ink-soft);max-width:420px;}
+.vision{background:var(--brown);color:var(--white);padding:clamp(70px,12vw,140px) clamp(20px,6vw,80px);position:relative;}
+.vision-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(30px,6vw,90px);align-items:center;}
+.vision .mono{color:rgba(253,251,247,0.55);margin-bottom:22px;}
+.vision h2{font-size:clamp(1.9rem,4.4vw,3.2rem);line-height:1.12;margin-bottom:26px;}
+.vision p{font-size:1rem;line-height:1.8;color:rgba(253,251,247,0.85);max-width:520px;}
+.vision .big-m{justify-self:center;opacity:0.9;}
+.order-strip{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;padding:clamp(40px,7vw,64px) clamp(20px,6vw,80px);background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.order-strip h3{font-size:clamp(1.3rem,3vw,1.8rem);max-width:480px;line-height:1.25;}
+@media (max-width:900px){.detail{grid-template-columns:1fr;}.vision-grid{grid-template-columns:1fr;text-align:left;}.vision .big-m{display:none;}}
+@media (max-width:520px){.hero h1{font-size:14vw;}.order-strip{flex-direction:column;align-items:flex-start;}.order-strip .btn{width:100%;}}
+
+
+/* ===================== COMPTE (inscription au moment de commander) ===================== */
+.auth-overlay{position:fixed;inset:0;z-index:2000;background:rgba(11,10,8,.62);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
+.auth-overlay.open{display:flex;}
+.auth-box{background:var(--bg-soft);color:var(--ink);width:100%;max-width:440px;max-height:92vh;overflow:auto;padding:34px 30px 30px;position:relative;border:1px solid var(--line);}
+.auth-close{position:absolute;top:12px;right:16px;background:none;border:0;font-size:1.6rem;cursor:pointer;color:var(--ink);line-height:1;}
+.auth-box h3{font-size:1.35rem;margin:6px 0 8px;}
+.auth-box p.auth-sub{color:var(--ink-soft);font-size:.92rem;margin-bottom:20px;line-height:1.5;}
+.auth-tabs{display:flex;gap:0;margin-bottom:22px;border-bottom:1px solid var(--line);}
+.auth-tab{flex:1;background:none;border:0;padding:12px 0;cursor:pointer;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.12em;font-size:.68rem;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;}
+.auth-tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.12em;font-size:.64rem;color:var(--ink-soft);margin-bottom:6px;}
+.auth-field input{width:100%;padding:13px 14px;border:1px solid var(--line);background:var(--white);font:inherit;font-size:16px;color:var(--ink);border-radius:0;}
+.auth-field input:focus{outline:none;border-color:var(--ink);}
+.auth-error{color:#9a2a1b;font-size:.88rem;min-height:1.2em;margin:4px 0 12px;}
+.auth-submit{width:100%;border:0;cursor:pointer;}
+.auth-ok{text-align:center;padding:10px 0 4px;}
+.auth-ok .btn{margin-top:18px;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#/" class="logo-mark">MADMAN</a>
+  <nav class="links">
+    <a href="#/">Accueil</a>
+    <a href="#collection">Collection</a>
+    <a href="#vision">Vision</a>
+    <a href="#/cart" class="cart-link">Panier <span class="cart-badge">0</span></a>
+  </nav>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo-mark">MADMAN VISION DEPT.</div>
+      <p>Built different. Seen different. Une marque née à Dakar pour ceux qui pensent autrement.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="#/">Accueil</a></li>
+        <li><a href="#vision">Vision</a></li>
+        <li><a href="#/cart">Panier</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="https://wa.me/221785941211" target="_blank">WhatsApp — 78 594 12 11</a></li>
+        <li><a href="https://www.snapchat.com/add/mohamedl0" target="_blank">Snapchat</a></li>
+        <li><a href="mailto:contact@madmanvisiondept.com">Nous écrire</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Madman Vision Dept.</span>
+    <span>Dakar, Sénégal</span>
+  </div>
+</footer>
+
+<a class="sticky-wa" href="https://wa.me/221785941211" target="_blank" aria-label="Commander sur WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.38a9.87 9.87 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C22 6.45 17.5 2 12.04 2zm0 18.1h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.24-8.25 8.24zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.18-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.86.84-.86 2.05 0 1.2.88 2.37 1 2.53.12.17 1.74 2.66 4.22 3.73.59.25 1.05.4 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+</a>
+
+
+<div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="auth-box">
+    <button class="auth-close" id="auth-close" aria-label="Fermer">×</button>
+    <div id="auth-main">
+      <div class="mono">Avant de commander</div>
+      <h3 class="display" id="auth-title">Votre compte</h3>
+      <p class="auth-sub">Un compte est nécessaire pour passer commande. Vous retrouverez ensuite vos commandes et pourrez échanger avec nous.</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="register" type="button">Créer un compte</button>
+        <button class="auth-tab" data-mode="login" type="button">Se connecter</button>
+      </div>
+      <div id="auth-form">
+        <div class="auth-row" data-only="register">
+          <div class="auth-field"><label for="af-first">Prénom</label><input id="af-first" autocomplete="given-name"></div>
+          <div class="auth-field"><label for="af-last">Nom</label><input id="af-last" autocomplete="family-name"></div>
+        </div>
+        <div class="auth-field"><label for="af-phone">Téléphone</label><input id="af-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="77 000 00 00"></div>
+        <div class="auth-field" data-only="register"><label for="af-email">E-mail (facultatif)</label><input id="af-email" type="email" autocomplete="email"></div>
+        <div class="auth-field"><label for="af-pass">Mot de passe</label><input id="af-pass" type="password" autocomplete="current-password" placeholder="6 caractères minimum"></div>
+        <div class="auth-error" id="auth-error" role="alert"></div>
+        <button class="btn btn-dark auth-submit" id="auth-submit" type="button">Créer mon compte</button>
+      </div>
+    </div>
+    <div class="auth-ok" id="auth-ok" style="display:none;">
+      <div class="mono">Compte prêt</div>
+      <h3 class="display" id="auth-ok-title">Bienvenue</h3>
+      <p class="auth-sub">Vous pouvez maintenant finaliser votre commande.</p>
+      <a class="btn btn-dark" id="auth-continue" target="_blank" rel="noopener">Continuer ma commande</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== MADMAN VISION DEPT. — SITE COMPLET (fichier unique) =====================
+
+const WHATSAPP_NUMBER = "221785941211";
+const SIZES = ["S", "M", "L", "X", "XXL"];
+
+const PRODUCTS = [{"id": "tee-noir", "category": "tshirt", "name": "Tee — Noir", "price": 10000, "images": ["assets/T-shirt noir.jpg", "assets/T-shirt noir dos.jpg", "assets/MannequinM3.jpg"], "hoverImage": "assets/T-shirt noir dos.jpg", "desc": "T-shirt oversize 100% coton, logo brodé poitrine, wordmark et baseline floqués au dos."}, {"id": "tee-blanc", "category": "tshirt", "name": "Tee — Blanc", "price": 10000, "images": ["assets/T-shirt blanc.jpg", "assets/T-shirt blanc dos.jpg", "assets/MannequinM4.jpg"], "hoverImage": "assets/T-shirt blanc dos.jpg", "desc": "T-shirt oversize 100% coton, logo brodé poitrine, wordmark et baseline floqués au dos."}, {"id": "tee-beige", "category": "tshirt", "name": "Tee — Écru", "price": 10000, "images": ["assets/T-shirt beige.jpg", "assets/T-shirt beige dos.jpg", "assets/MannequinM5.jpg"], "hoverImage": "assets/T-shirt beige dos.jpg", "desc": "T-shirt oversize 100% coton, logo brodé poitrine, wordmark et baseline floqués au dos."}, {"id": "tee-marron", "category": "tshirt", "name": "Tee — Marron", "price": 10000, "images": ["assets/T-shirt marron.jpg", "assets/T-shirt marron dos.jpg", "assets/MannequinM2.jpg"], "hoverImage": "assets/T-shirt marron dos.jpg", "tag": "Best-seller", "desc": "T-shirt oversize 100% coton, logo brodé poitrine, wordmark et baseline floqués au dos."}, {"id": "hoodie-noir", "category": "hoodie", "name": "Hoodie — Noir", "price": 15000, "images": ["assets/pull noir.jpg", "assets/pull noir dos.jpg"], "hoverImage": "assets/pull noir dos.jpg", "desc": "Hoodie oversize 100% coton épais, poche kangourou, logo poitrine et wordmark dos."}, {"id": "hoodie-marron", "category": "hoodie", "name": "Hoodie — Marron", "price": 15000, "images": ["assets/pull marron.jpg", "assets/pull marron dos.jpg"], "hoverImage": "assets/pull marron dos.jpg", "desc": "Hoodie oversize 100% coton épais, poche kangourou, logo poitrine et wordmark dos."}, {"id": "hoodie-ecru", "category": "hoodie", "name": "Hoodie — Écru", "price": 15000, "images": ["assets/pull.jpg", "assets/pulldos.jpg"], "hoverImage": "assets/pulldos.jpg", "desc": "Hoodie oversize 100% coton épais, poche kangourou, logo poitrine et wordmark dos."}, {"id": "hoodie-blanc", "category": "hoodie", "name": "Hoodie — Blanc", "price": 15000, "images": ["assets/pull blanc.jpg", "assets/pull blanc dos.jpg"], "hoverImage": "assets/pull blanc dos.jpg", "desc": "Hoodie oversize 100% coton épais, poche kangourou, logo poitrine et wordmark dos."}];
+function getProduct(id) { return PRODUCTS.find(p => p.id === id); }
+function formatPrice(n) { return n.toLocaleString("fr-FR").replace(/,/g, " ") + " FCFA"; }
+
+/* ---------------- PANIER ---------------- */
+function getCart(){ try { return JSON.parse(localStorage.getItem("madman_cart") || "[]"); } catch(e){ return []; } }
+function saveCart(cart){ localStorage.setItem("madman_cart", JSON.stringify(cart)); updateCartBadge(); }
+function addToCart(productId, size, qty){
+  const cart = getCart();
+  const existing = cart.find(i => i.id === productId && i.size === size);
+  if (existing) existing.qty += qty; else cart.push({ id: productId, size, qty });
+  saveCart(cart);
+}
+function removeFromCart(index){ const cart = getCart(); cart.splice(index,1); saveCart(cart); if (location.hash.startsWith("#/cart")) renderCart(); }
+function cartCount(){ return getCart().reduce((s,i)=>s+i.qty,0); }
+function cartTotal(){ return getCart().reduce((s,i)=>{ const p=getProduct(i.id); return s+(p?p.price*i.qty:0); },0); }
+function updateCartBadge(){ document.querySelectorAll(".cart-badge").forEach(el => el.textContent = cartCount()); }
+
+function waLinkSingle(product, size, qty){
+  const msg = `Bonjour, je souhaite commander :\n- ${product.name} — Taille ${size} x${qty} — ${formatPrice(product.price*qty)}\n\nMerci de me confirmer la disponibilité.`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+function waLinkCart(){
+  const cart = getCart();
+  if (cart.length === 0) return `https://wa.me/${WHATSAPP_NUMBER}`;
+  let lines = "Bonjour, je souhaite commander :\n";
+  cart.forEach(i => { const p = getProduct(i.id); if (p) lines += `- ${p.name} — Taille ${i.size} x${i.qty} — ${formatPrice(p.price*i.qty)}\n`; });
+  lines += `\nTotal : ${formatPrice(cartTotal())}\n\nMerci de me confirmer la disponibilité et les modalités de livraison.`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines)}`;
+}
+
+/* ---------------- HEADER SCROLL STATE ---------------- */
+function initHeaderScroll(){
+  const header = document.querySelector("header");
+  if (!header) return;
+  const check = () => {
+    const onHome = !location.hash || location.hash === "#/" || location.hash === "";
+    if (!onHome || window.scrollY > 40) header.classList.add("solid");
+    else header.classList.remove("solid");
+  };
+  window.addEventListener("scroll", check);
+  window.addEventListener("hashchange", check);
+  check();
+}
+
+/* ===================== TEMPLATES ===================== */
+
+function homeTemplate(){
+  return `
+  <section class="hero">
+    <img src="${getProduct('tee-marron').images[2]}" alt="MADMAN t-shirt marron porté">
+    <div class="hero-content">
+      <div class="eyebrow">Est. MMXXV — Dakar</div>
+      <h1 class="display">Built<br>Different.</h1>
+      <p class="hero-sub">Pour ceux qu'on regarde de travers parce qu'ils croient trop fort en leurs rêves. MADMAN habille la différence — pas la tendance.</p>
+      <a href="#collection" class="hero-cta">Découvrir la collection →</a>
+    </div>
+    <div class="scroll-cue">SCROLL</div>
+  </section>
+
+  <section class="manifesto">
+    <div class="mono">Brand statement</div>
+    <blockquote>
+      MADMAN n'est pas qu'une marque. C'est une vision.
+      <span> Née pour ceux qui pensent différemment, créent sans limites et avancent en silence. Nous ne suivons pas la tendance — nous la créons.</span>
+    </blockquote>
+    <div class="sign">
+      <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 85V15L50 55L85 15V85" stroke="#FDFBF7" stroke-width="6"/></svg>
+      Madman Vision Dept.
+    </div>
+  </section>
+
+  <section id="collection">
+    <div class="section-head">
+      <h2 class="display">La Collection</h2>
+      <div class="mono">100% Coton — S · M · L · X · XXL</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-filter="all">Tout</button>
+      <button class="tab" data-filter="tshirt">T-shirts</button>
+      <button class="tab" data-filter="hoodie">Hoodies</button>
+    </div>
+    <div class="grid" id="product-grid"></div>
+  </section>
+
+  <div class="detail">
+    <div class="photo"><img src="${getProduct('tee-marron').images[0]}" alt="Détail matière MADMAN"></div>
+    <div class="copy">
+      <div class="mono">La matière</div>
+      <h3 class="display">100% Coton.<br>Zéro compromis.</h3>
+      <p>Chaque pièce MADMAN est pensée pour durer — coupe oversize, coton épais, finitions soignées jusqu'à l'étiquette. Ce n'est pas un t-shirt qu'on porte une saison.</p>
+    </div>
+  </div>
+
+  <section class="vision" id="vision">
+    <div class="vision-grid">
+      <div>
+        <div class="mono">Vision Dept.</div>
+        <h2 class="display">Être différent<br>n'est pas une<br>critique.</h2>
+        <p>On nous a souvent traités de fous pour avoir cru à ce que personne ne voyait encore. MADMAN en fait un étendard — pour tous ceux qui avancent en silence, persuadés que leur vision deviendra réalité. Chaque pièce porte cette audace, cette liberté, cette authenticité.</p>
+      </div>
+      <svg class="big-m" width="220" height="220" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 85V15L50 55L85 15V85" stroke="#FDFBF7" stroke-width="3" opacity="0.5"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="order-strip" id="contact">
+    <h3 class="display">Prêt à commander ?<br>Un compte en 30 secondes.</h3>
+    <a class="btn btn-dark" href="https://wa.me/${WHATSAPP_NUMBER}?text=Bonjour%2C%20je%20souhaite%20commander%20une%20pi%C3%A8ce%20MADMAN" target="_blank">Commander sur WhatsApp</a>
+  </div>
+  `;
+}
+
+function productTemplate(id){
+  const product = getProduct(id) || PRODUCTS[0];
+  const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id);
+  return `
+  <div class="page-pad">
+    <div class="breadcrumb" style="display:flex;align-items:center;gap:14px;">
+      <button class="back-btn" onclick="history.length>1?history.back():location.hash='#/'" aria-label="Retour">←</button>
+      <span><a href="#/">Accueil</a> &nbsp;›&nbsp; <span>${product.category === "tshirt" ? "T-Shirt" : "Hoodie"}</span> &nbsp;›&nbsp; <span>${product.name}</span></span>
+    </div>
+    <div class="pdp">
+      <div class="pdp-gallery">
+        <div class="pdp-main-img"><img id="pdp-main-img" src="${product.images[0]}" alt="${product.name}"></div>
+        <div class="pdp-thumbs" id="pdp-thumbs">
+          ${product.images.map((src,i)=>`<button class="${i===0?'active':''}" data-i="${i}"><img src="${src}" alt="${product.name}"></button>`).join("")}
+        </div>
+      </div>
+      <div class="pdp-info">
+        <div class="mono">${product.tag ? product.tag : (product.category === "tshirt" ? "T-Shirt — MMXXV" : "Hoodie — MMXXV")}</div>
+        <h1>${product.name}</h1>
+        <div class="pdp-price">${formatPrice(product.price)}</div>
+        <div class="pdp-desc"><ul>
+          <li>${product.desc}</li>
+          <li>Coupe oversize unisexe</li>
+          <li>Étiquette officielle MADMAN VISION DEPT.</li>
+          <li>Lavage en machine à froid recommandé</li>
+        </ul></div>
+        <span class="field-label">Taille</span>
+        <div class="size-row" id="pdp-sizes">
+          ${SIZES.map(s => `<button class="size-pill" data-size="${s}">${s}</button>`).join("")}
+        </div>
+        <span class="field-label">Quantité</span>
+        <div class="qty-row">
+          <div class="qty-stepper">
+            <button id="pdp-qty-minus">−</button><span id="pdp-qty-val">1</span><button id="pdp-qty-plus">+</button>
+          </div>
+        </div>
+        <div class="pdp-actions">
+          <button class="btn btn-dark" id="pdp-add-btn">Ajouter au panier</button>
+          <a class="btn btn-outline" id="pdp-wa-btn" target="_blank">Commander directement sur WhatsApp</a>
+        </div>
+        <p class="pdp-note">100% coton — coupe oversize unisexe. Livraison disponible selon votre localisation, les modalités se règlent directement avec nous sur WhatsApp.</p>
+      </div>
+    </div>
+    <div class="section-head"><h2 class="display">Produits similaires</h2></div>
+    <div class="related-grid" id="related-grid">
+      ${related.map(p => `
+        <a class="card" href="#/product?id=${p.id}">
+          <div class="card-img"><img class="base" src="${p.images[0]}" alt="${p.name}"><img class="alt" src="${p.hoverImage}" alt="${p.name} dos"></div>
+          <div class="card-info"><h3>${p.name}</h3><div class="price">${formatPrice(p.price)}</div>
+          <div class="card-cta"><span>Voir le produit</span><span class="go">→</span></div></div>
+        </a>
+      `).join("")}
+    </div>
+  </div>
+  `;
+}
+
+function cartTemplate(){
+  const cart = getCart();
+  if (cart.length === 0){
+    return `
+    <div class="page-pad">
+      <div class="breadcrumb" style="display:flex;align-items:center;gap:14px;">
+        <button class="back-btn" onclick="history.length>1?history.back():location.hash='#/'" aria-label="Retour">←</button>
+        <span><a href="#/">Accueil</a> &nbsp;›&nbsp; <span>Panier</span></span>
+      </div>
+      <div class="section-head" style="margin-top:24px;"><h2 class="display">Votre panier</h2></div>
+      <div class="cart-empty">
+        <h3 class="display">Votre panier est vide</h3>
+        <p style="color:var(--ink-soft);margin-bottom:24px;">Parcourez la collection et ajoutez vos pièces préférées.</p>
+        <a href="#collection" class="btn btn-dark">Voir la collection</a>
+      </div>
+    </div>`;
+  }
+  let items = "";
+  cart.forEach((item, index) => {
+    const p = getProduct(item.id);
+    if (!p) return;
+    items += `
+      <div class="cart-item">
+        <img src="${p.images[0]}" alt="${p.name}">
+        <div>
+          <h4>${p.name}</h4>
+          <div class="meta">Taille ${item.size} — Qté ${item.qty} — ${formatPrice(p.price*item.qty)}</div>
+          <span class="remove" data-index="${index}">Retirer</span>
+        </div>
+      </div>`;
+  });
+  return `
+  <div class="page-pad">
+    <div class="breadcrumb" style="display:flex;align-items:center;gap:14px;">
+      <button class="back-btn" onclick="history.length>1?history.back():location.hash='#/'" aria-label="Retour">←</button>
+      <span><a href="#/">Accueil</a> &nbsp;›&nbsp; <span>Panier</span></span>
+    </div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="display">Votre panier</h2></div>
+    <div class="cart-wrap">
+      ${items}
+      <div class="cart-summary">
+        <div>
+          <div class="mono" style="margin-bottom:6px;">Total</div>
+          <div style="font-family:'Space Mono',monospace;font-size:1.3rem;">${formatPrice(cartTotal())}</div>
+        </div>
+        <a class="btn btn-dark" id="cart-wa-btn" target="_blank">Commander sur WhatsApp</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ===================== WIRING (event listeners après rendu) ===================== */
+
+function wireProductCards(){
+  document.querySelectorAll(".card[data-product-id]").forEach(card => {
+    card.addEventListener("click", (e) => {
+      if (isDesktop()) { e.preventDefault(); openQuickView(card.dataset.productId); }
+    });
+  });
+}
+
+function renderGrid(filter){
+  const grid = document.getElementById("product-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  const list = filter === "all" ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
+  list.forEach(p => {
+    const card = document.createElement("a");
+    card.className = "card";
+    card.href = `#/product?id=${p.id}`;
+    card.dataset.productId = p.id;
+    card.innerHTML = `
+      <div class="card-img">
+        <img class="base" src="${p.images[0]}" alt="${p.name}">
+        <img class="alt" src="${p.hoverImage}" alt="${p.name} dos">
+      </div>
+      ${p.tag ? `<div class="card-tag">${p.tag}</div>` : ""}
+      <div class="card-info">
+        <h3>${p.name}</h3>
+        <div class="price">${formatPrice(p.price)}</div>
+        <div class="card-cta"><span>Voir le produit</span><span class="go">→</span></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  wireProductCards();
+}
+
+function wireHome(){
+  renderGrid("all");
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      renderGrid(tab.dataset.filter);
+    });
+  });
+}
+
+function wireProductPage(id){
+  const product = getProduct(id) || PRODUCTS[0];
+  let state = { size: null, qty: 1 };
+
+  const thumbs = document.getElementById("pdp-thumbs");
+  thumbs.querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      document.getElementById("pdp-main-img").src = product.images[parseInt(b.dataset.i)];
+      thumbs.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    });
+  });
+
+  const sizesEl = document.getElementById("pdp-sizes");
+  sizesEl.querySelectorAll(".size-pill").forEach(b => {
+    b.addEventListener("click", () => {
+      state.size = b.dataset.size;
+      sizesEl.querySelectorAll(".size-pill").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      updateWaLink();
+    });
+  });
+
+  function updateWaLink(){
+    document.getElementById("pdp-wa-btn").href = waLinkSingle(product, state.size || SIZES[1], state.qty);
+  }
+  updateWaLink();
+
+  document.getElementById("pdp-qty-minus").addEventListener("click", () => {
+    state.qty = Math.max(1, state.qty - 1);
+    document.getElementById("pdp-qty-val").textContent = state.qty;
+    updateWaLink();
+  });
+  document.getElementById("pdp-qty-plus").addEventListener("click", () => {
+    state.qty += 1;
+    document.getElementById("pdp-qty-val").textContent = state.qty;
+    updateWaLink();
+  });
+  document.getElementById("pdp-add-btn").addEventListener("click", () => {
+    if (!state.size) { alert("Merci de choisir une taille."); return; }
+    addToCart(product.id, state.size, state.qty);
+    const btn = document.getElementById("pdp-add-btn");
+    const original = btn.textContent;
+    btn.textContent = "Ajouté ✓";
+    setTimeout(() => { btn.textContent = original; }, 1400);
+  });
+
+  document.querySelectorAll("#related-grid .card[href]").forEach(a => {}); // liens normaux, pas de quickview ici
+}
+
+function wireCartPage(){
+  const waBtn = document.getElementById("cart-wa-btn");
+  if (waBtn) waBtn.href = waLinkCart();
+  document.querySelectorAll(".remove").forEach(el => {
+    el.addEventListener("click", () => removeFromCart(parseInt(el.dataset.index)));
+  });
+}
+
+/* ===================== ROUTER ===================== */
+
+function router(){
+  const app = document.getElementById("app");
+  const hash = location.hash;
+  if (hash.startsWith("#/product")){
+    const qs = hash.split("?")[1] || "";
+    const id = new URLSearchParams(qs).get("id");
+    app.innerHTML = productTemplate(id);
+    wireProductPage(id);
+  } else if (hash.startsWith("#/cart")){
+    app.innerHTML = cartTemplate();
+    wireCartPage();
+  } else {
+    app.innerHTML = homeTemplate();
+    wireHome();
+  }
+  window.scrollTo(0,0);
+  updateCartBadge();
+}
+
+window.addEventListener("hashchange", router);
+window.addEventListener("DOMContentLoaded", () => {
+  router();
+  initHeaderScroll();
+});
+
+/* ===================== QUICK VIEW (tiroir desktop) ===================== */
+
+let qvState = { product: null, size: null, qty: 1 };
+function isDesktop(){ return window.matchMedia("(min-width: 901px)").matches; }
+
+function buildQuickViewShell(){
+  if (document.getElementById("qv-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "qv-overlay"; overlay.id = "qv-overlay";
+  const drawer = document.createElement("div");
+  drawer.className = "qv-drawer"; drawer.id = "qv-drawer";
+  drawer.innerHTML = `
+    <div class="qv-top">
+      <div class="breadcrumb" style="padding:0;margin:0;"><a href="#/">Accueil</a> &nbsp;›&nbsp; <span id="qv-cat"></span></div>
+      <button class="qv-close" id="qv-close-btn">✕</button>
+    </div>
+    <div class="qv-body">
+      <div class="qv-main-img"><img id="qv-main-img" src="" alt=""></div>
+      <div class="qv-thumbs" id="qv-thumbs"></div>
+      <h1 class="display" id="qv-name" style="font-size:1.5rem;margin-bottom:10px;"></h1>
+      <div class="pdp-price" id="qv-price" style="margin-bottom:20px;"></div>
+      <div class="pdp-desc" id="qv-desc" style="margin-bottom:24px;"></div>
+      <span class="field-label">Taille</span>
+      <div class="size-row" id="qv-sizes"></div>
+      <span class="field-label">Quantité</span>
+      <div class="qty-row">
+        <div class="qty-stepper"><button id="qv-qty-minus">−</button><span id="qv-qty-val">1</span><button id="qv-qty-plus">+</button></div>
+      </div>
+      <div class="pdp-actions">
+        <button class="btn btn-dark" id="qv-add-btn">Ajouter au panier</button>
+        <a class="btn btn-outline" id="qv-wa-btn" target="_blank">Commander directement sur WhatsApp</a>
+      </div>
+      <p class="pdp-note">Livraison disponible selon votre localisation — les détails se règlent directement avec nous sur WhatsApp.</p>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(drawer);
+  overlay.addEventListener("click", closeQuickView);
+  document.getElementById("qv-close-btn").addEventListener("click", closeQuickView);
+  document.getElementById("qv-qty-minus").addEventListener("click", () => changeQvQty(-1));
+  document.getElementById("qv-qty-plus").addEventListener("click", () => changeQvQty(1));
+  document.getElementById("qv-add-btn").addEventListener("click", () => {
+    if (!qvState.size) { alert("Merci de choisir une taille."); return; }
+    addToCart(qvState.product.id, qvState.size, qvState.qty);
+    const btn = document.getElementById("qv-add-btn");
+    const original = btn.textContent;
+    btn.textContent = "Ajouté ✓";
+    setTimeout(() => { btn.textContent = original; }, 1400);
+  });
+}
+
+function changeQvQty(delta){
+  qvState.qty = Math.max(1, qvState.qty + delta);
+  document.getElementById("qv-qty-val").textContent = qvState.qty;
+  updateQvWaLink();
+}
+function updateQvWaLink(){
+  const waBtn = document.getElementById("qv-wa-btn");
+  if (qvState.product && qvState.size) waBtn.href = waLinkSingle(qvState.product, qvState.size, qvState.qty);
+  else if (qvState.product) waBtn.href = waLinkSingle(qvState.product, SIZES[1], qvState.qty);
+}
+
+function openQuickView(productId){
+  const p = getProduct(productId);
+  if (!p) return;
+  buildQuickViewShell();
+  qvState = { product: p, size: null, qty: 1 };
+  document.getElementById("qv-cat").textContent = p.category === "tshirt" ? "T-Shirt" : "Hoodie";
+  document.getElementById("qv-name").textContent = p.name;
+  document.getElementById("qv-price").textContent = formatPrice(p.price);
+  document.getElementById("qv-desc").innerHTML = `<ul><li>${p.desc}</li><li>Coupe oversize unisexe</li><li>Étiquette officielle MADMAN VISION DEPT.</li></ul>`;
+  document.getElementById("qv-main-img").src = p.images[0];
+  document.getElementById("qv-qty-val").textContent = "1";
+
+  const thumbs = document.getElementById("qv-thumbs");
+  thumbs.innerHTML = "";
+  p.images.forEach((src,i) => {
+    const b = document.createElement("button");
+    if (i === 0) b.className = "active";
+    b.innerHTML = `<img src="${src}" alt="${p.name}">`;
+    b.addEventListener("click", () => {
+      document.getElementById("qv-main-img").src = src;
+      thumbs.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    });
+    thumbs.appendChild(b);
+  });
+
+  const sizesEl = document.getElementById("qv-sizes");
+  sizesEl.innerHTML = "";
+  SIZES.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "size-pill";
+    b.textContent = s;
+    b.addEventListener("click", () => {
+      qvState.size = s;
+      sizesEl.querySelectorAll(".size-pill").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      updateQvWaLink();
+    });
+    sizesEl.appendChild(b);
+  });
+
+  updateQvWaLink();
+  document.getElementById("qv-overlay").classList.add("open");
+  document.getElementById("qv-drawer").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeQuickView(){
+  const overlay = document.getElementById("qv-overlay");
+  const drawer = document.getElementById("qv-drawer");
+  if (overlay) overlay.classList.remove("open");
+  if (drawer) drawer.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+
+/* ===================== COMPTE + SUIVI (serveur) ===================== */
+let currentUser = null, authMode = "register", pendingOrderUrl = null;
+const $ = id => document.getElementById(id);
+
+async function api(url, body){
+  const r = await fetch(url, { method: body ? "POST" : "GET", headers: body ? {"Content-Type":"application/json"} : {}, body: body ? JSON.stringify(body) : undefined, credentials: "same-origin" });
+  let data = {}; try { data = await r.json(); } catch(e){}
+  if (!r.ok) throw new Error(data.error || "Une erreur est survenue. Réessayez.");
+  return data;
+}
+function setAuthMode(mode){
+  authMode = mode;
+  document.querySelectorAll(".auth-tab").forEach(t => t.classList.toggle("active", t.dataset.mode === mode));
+  document.querySelectorAll("#auth-form [data-only='register']").forEach(el => el.style.display = mode === "register" ? "" : "none");
+  $("auth-submit").textContent = mode === "register" ? "Créer mon compte" : "Me connecter";
+  $("af-pass").autocomplete = mode === "register" ? "new-password" : "current-password";
+  $("auth-error").textContent = "";
+}
+function openAuth(mode){
+  $("auth-main").style.display = ""; $("auth-ok").style.display = "none";
+  setAuthMode(mode || "register");
+  $("auth-overlay").classList.add("open");
+  setTimeout(() => (authMode === "register" ? $("af-first") : $("af-phone")).focus(), 50);
+}
+function closeAuth(){ $("auth-overlay").classList.remove("open"); }
+async function submitAuth(){
+  const btn = $("auth-submit"); $("auth-error").textContent = ""; btn.disabled = true;
+  try {
+    const payload = { phone: $("af-phone").value, password: $("af-pass").value };
+    if (authMode === "register") Object.assign(payload, { firstName: $("af-first").value, lastName: $("af-last").value, email: $("af-email").value });
+    const { user } = await api(authMode === "register" ? "/api/auth/register" : "/api/auth/login", payload);
+    currentUser = user;
+    $("auth-ok-title").textContent = "Bienvenue, " + user.firstName;
+    $("auth-continue").href = pendingOrderUrl || ("https://wa.me/" + WHATSAPP_NUMBER);
+    $("auth-main").style.display = "none"; $("auth-ok").style.display = "";
+  } catch(e){ $("auth-error").textContent = e.message; }
+  btn.disabled = false;
+}
+function initAuth(){
+  document.querySelectorAll(".auth-tab").forEach(t => t.addEventListener("click", () => setAuthMode(t.dataset.mode)));
+  $("auth-close").addEventListener("click", closeAuth);
+  $("auth-overlay").addEventListener("click", e => { if (e.target.id === "auth-overlay") closeAuth(); });
+  $("auth-submit").addEventListener("click", submitAuth);
+  $("auth-form").addEventListener("keydown", e => { if (e.key === "Enter") submitAuth(); });
+  $("auth-continue").addEventListener("click", () => setTimeout(closeAuth, 200));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeAuth(); });
+  // Tout bouton « Commander » (WhatsApp) exige un compte
+  document.addEventListener("click", e => {
+    const a = e.target.closest("a.btn[href^='https://wa.me/']");
+    if (!a || currentUser) return;
+    e.preventDefault(); e.stopPropagation();
+    pendingOrderUrl = a.href; openAuth("register");
+  }, true);
+  api("/api/me").then(d => { currentUser = d.user; }).catch(() => {});
+}
+function trackVisit(){
+  try {
+    let vid = localStorage.getItem("madman_vid");
+    if (!vid) { vid = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2)); localStorage.setItem("madman_vid", vid); }
+    fetch("/api/track", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ visitorId: vid, path: location.hash || "#/" }), keepalive:true, credentials:"same-origin" }).catch(()=>{});
+  } catch(e){}
+}
+initAuth(); trackVisit();
+window.addEventListener("hashchange", trackVisit);
+</script>
+</body>
+</html>
