@@ -1,45 +1,24 @@
-// MADMAN VISION DEPT. — Serveur (étape 1 : comptes + suivi des visites)
+// MADMAN VISION DEPT. — Serveur (étape 1 : comptes + suivi des visites) — PostgreSQL (Supabase)
 const express = require("express");
-const Database = require("better-sqlite3");
+const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const path = require("path");
-const fs = require("fs");
 
 const PORT = process.env.PORT || 3000;
 const PROD = process.env.NODE_ENV === "production";
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, "data", "madman.db");
 const ADMIN_PHONES = (process.env.ADMIN_PHONES || "").split(",").map(s => s.trim()).filter(Boolean);
 const SESSION_DAYS = 30;
 
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  phone TEXT NOT NULL UNIQUE,
-  email TEXT,
-  password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'customer',
-  created_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS sessions (
-  token_hash TEXT PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS visits (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  visitor_id TEXT NOT NULL,
-  path TEXT,
-  user_id INTEGER,
-  created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_visits_time ON visits(created_at);
-`);
+if (!process.env.DATABASE_URL) { console.error("DATABASE_URL manquante."); process.exit(1); }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_SSL === "off" ? false : { rejectUnauthorized: false },
+  max: 8,
+});
+pool.on("error", e => console.error("Erreur base de données :", e.message));
+const q = (text, params) => pool.query(text, params);
+const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const app = express();
 app.set("trust proxy", 1);
@@ -77,30 +56,30 @@ setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (!v.so
 function publicUser(u) {
   return { id: u.id, firstName: u.first_name, lastName: u.last_name, phone: u.phone, email: u.email, role: u.role };
 }
-function startSession(res, userId) {
+async function startSession(res, userId) {
   const token = crypto.randomBytes(32).toString("hex");
-  db.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?,?,?)")
-    .run(sha(token), userId, Date.now() + SESSION_DAYS * 864e5);
+  await q("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1,$2, now() + make_interval(days => $3))",
+    [sha(token), userId, SESSION_DAYS]);
   res.cookie("mv_session", token, { httpOnly: true, sameSite: "lax", secure: PROD, maxAge: SESSION_DAYS * 864e5, path: "/" });
 }
 function readCookie(req, name) {
   const m = (req.headers.cookie || "").split(/;\s*/).find(c => c.startsWith(name + "="));
   return m ? decodeURIComponent(m.slice(name.length + 1)) : null;
 }
-function auth(req, res, next) {
+const auth = wrap(async (req, res, next) => {
   const token = readCookie(req, "mv_session");
   req.user = null;
   if (token) {
-    const row = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
-      WHERE s.token_hash = ? AND s.expires_at > ?`).get(sha(token), Date.now());
-    if (row) req.user = row;
+    const { rows } = await q(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
+      WHERE s.token_hash = $1 AND s.expires_at > now()`, [sha(token)]);
+    if (rows[0]) req.user = rows[0];
   }
   next();
-}
+});
 app.use(auth);
 
 /* ---------- API comptes ---------- */
-app.post("/api/auth/register", limit(8, 15 * 60e3), (req, res) => {
+app.post("/api/auth/register", limit(8, 15 * 60e3), wrap(async (req, res) => {
   const firstName = clean(req.body.firstName, 60), lastName = clean(req.body.lastName, 60);
   const phone = normalizePhone(req.body.phone);
   const email = clean(req.body.email, 120).toLowerCase() || null;
@@ -109,47 +88,59 @@ app.post("/api/auth/register", limit(8, 15 * 60e3), (req, res) => {
   if (!phone) return res.status(400).json({ error: "Numéro de téléphone invalide." });
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "Adresse e-mail invalide." });
   if (password.length < 6 || password.length > 100) return res.status(400).json({ error: "Mot de passe : 6 caractères minimum." });
-  if (db.prepare("SELECT 1 FROM users WHERE phone = ?").get(phone))
-    return res.status(409).json({ error: "Ce numéro a déjà un compte. Connectez-vous." });
   const role = ADMIN_PHONES.includes(phone) ? "admin" : "customer";
-  const info = db.prepare(`INSERT INTO users (first_name,last_name,phone,email,password_hash,role,created_at)
-    VALUES (?,?,?,?,?,?,?)`).run(firstName, lastName, phone, email, bcrypt.hashSync(password, 10), role, Date.now());
-  startSession(res, info.lastInsertRowid);
-  res.status(201).json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(info.lastInsertRowid)) });
-});
+  let user;
+  try {
+    const r = await q(`INSERT INTO users (first_name,last_name,phone,email,password_hash,role)
+      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`, [firstName, lastName, phone, email, await bcrypt.hash(password, 10), role]);
+    user = r.rows[0];
+  } catch (e) {
+    if (e.code === "23505") return res.status(409).json({ error: "Ce numéro a déjà un compte. Connectez-vous." });
+    throw e;
+  }
+  await startSession(res, user.id);
+  res.status(201).json({ user: publicUser(user) });
+}));
 
-app.post("/api/auth/login", limit(10, 15 * 60e3), (req, res) => {
+app.post("/api/auth/login", limit(10, 15 * 60e3), wrap(async (req, res) => {
   const phone = normalizePhone(req.body.phone);
-  const u = phone && db.prepare("SELECT * FROM users WHERE phone = ?").get(phone);
-  if (!u || !bcrypt.compareSync(String(req.body.password ?? ""), u.password_hash))
+  const u = phone ? (await q("SELECT * FROM users WHERE phone = $1", [phone])).rows[0] : null;
+  if (!u || !(await bcrypt.compare(String(req.body.password ?? ""), u.password_hash)))
     return res.status(401).json({ error: "Numéro ou mot de passe incorrect." });
-  startSession(res, u.id);
+  await startSession(res, u.id);
   res.json({ user: publicUser(u) });
-});
+}));
 
-app.post("/api/auth/logout", (req, res) => {
+app.post("/api/auth/logout", wrap(async (req, res) => {
   const token = readCookie(req, "mv_session");
-  if (token) db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha(token));
+  if (token) await q("DELETE FROM sessions WHERE token_hash = $1", [sha(token)]);
   res.clearCookie("mv_session", { path: "/" });
   res.json({ ok: true });
-});
+}));
 
 app.get("/api/me", (req, res) => res.json({ user: req.user ? publicUser(req.user) : null }));
 
 /* ---------- suivi des visites (alimente le futur dashboard) ---------- */
-app.post("/api/track", limit(60, 60e3), (req, res) => {
+app.post("/api/track", limit(60, 60e3), wrap(async (req, res) => {
   const vid = clean(req.body.visitorId, 64);
   if (/^[a-f0-9-]{16,64}$/i.test(vid))
-    db.prepare("INSERT INTO visits (visitor_id,path,user_id,created_at) VALUES (?,?,?,?)")
-      .run(vid, clean(req.body.path, 200), req.user ? req.user.id : null, Date.now());
+    await q("INSERT INTO visits (visitor_id,path,user_id) VALUES ($1,$2,$3)",
+      [vid, clean(req.body.path, 200), req.user ? req.user.id : null]);
   res.status(204).end();
-});
+}));
 
-app.get("/healthz", (req, res) => res.send("ok"));
+app.get("/healthz", wrap(async (req, res) => { await q("SELECT 1"); res.send("ok"); }));
 app.use("/api", (req, res) => res.status(404).json({ error: "Introuvable." }));
 app.use(express.static(path.join(__dirname, "public"), { extensions: ["html"] }));
 
+// gestion d'erreurs
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: "Erreur serveur. Réessayez." });
+});
+
 // nettoyage des sessions expirées
-setInterval(() => db.prepare("DELETE FROM sessions WHERE expires_at < ?").run(Date.now()), 3600e3).unref();
+setInterval(() => q("DELETE FROM sessions WHERE expires_at < now()").catch(() => {}), 3600e3).unref();
 
 app.listen(PORT, () => console.log(`MADMAN VISION DEPT. — serveur prêt sur le port ${PORT}`));
